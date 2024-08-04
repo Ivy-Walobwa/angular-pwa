@@ -1,0 +1,15 @@
+<main>
+  <header class="brand-name">
+    <h1>Angular PWA Blog</h1>
+  </header>
+  <section class="content">
+    @for(post of posts;track post.id){
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.body }}</p>
+    } @empty {
+    <p>No posts found</p>
+    }ß
+  </section>
+</main>
+
+<router-outlet />
