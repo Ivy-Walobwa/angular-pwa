@@ -1,7 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PostsService } from './posts.service';
+import { NetworkService } from './network.service';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface Posts {
   userId: number;
@@ -17,11 +20,18 @@ interface Posts {
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'angular pwa';
   posts: Posts[] = [];
-  
-  constructor(private postsService: PostsService) {
+  private subscription: Subscription | undefined;
+
+  constructor(
+    private postsService: PostsService,
+    private networkService: NetworkService,
+    private snackBar: MatSnackBar
+  ) {}
+
+  ngOnInit(): void {
     this.postsService.getPosts().subscribe({
       next: (posts) => {
         this.posts = posts;
@@ -30,7 +40,24 @@ export class AppComponent {
         console.error(err);
       },
     });
+
+    this.subscription = this.networkService.onlineStatus$.subscribe({
+      next: (isOnline) => {
+        if (isOnline) {
+          this.snackBar.open('You are now online', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top',
+          });
+        } else {
+          this.snackBar.open('You are offline', 'OK', {
+            duration: 3000,
+            verticalPosition: 'top',
+          });
+        }
+      },
+    });
   }
-
-
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
+  }
 }
